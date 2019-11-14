@@ -1,0 +1,280 @@
+#!/bin/bash
+##################################################################################
+##### LICENSE ####################################################################
+##################################################################################
+####                                                                          ####
+#### Copyright (C) 2018 wuseman <info@sendit.nu>                              ####
+####                                                                          ####
+#### This program is free software: you can redistribute it and/or modify     ####
+#### it under the terms of the GNU General Public License as published by     ####
+#### the Free Software Foundation, either version 3 of the License, or        ####
+#### (at your option) any later version.                                      ####
+####                                                                          ####
+#### This program is distributed in the hope that it will be useful,          ####
+#### but WITHOUT ANY WARRANTY; without even the implied warranty of           ####
+#### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            ####
+#### GNU General Public License at <http://www.gnu.org/licenses/> for         ####
+#### more details.                                                            ####
+####                                                                          ####
+##################################################################################
+##### GREETINGS ##################################################################
+##################################################################################
+####                                                                          ####
+#### To all developers that contributes to all kind of open source projects   ####
+#### Keep up the good work!                                                   #<3#
+####                                                                          ####
+#### https://sendit.nu & https://github.com/wuseman                           ####
+####                                                                          ####
+##################################################################################
+#### DESCRIPTION #################################################################
+##################################################################################
+####                                                                          ####
+#### Control cmus from command line                                           ####
+####                                                                          ####
+#### Enjoy another awesome 'bash' script from wuseman. Questions? Conact me!  ####
+####                                                                          ####
+##################################################################################
+#### Begin of code  ##############################################################
+##################################################################################
+
+banner() {
+echo -e "\e[1;35m"
+echo "    ██╗    ██╗███╗   ███╗██╗   ██╗███████╗";
+echo "    ██║    ██║████╗ ████║██║   ██║██╔════╝";
+echo "    ██║ █╗ ██║██╔████╔██║██║   ██║███████╗";
+echo "    ██║███╗██║██║╚██╔╝██║██║   ██║╚════██║";
+echo "    ╚███╔███╔╝██║ ╚═╝ ██║╚██████╔╝███████║";
+echo "     ╚══╝╚══╝ ╚═╝     ╚═╝ ╚═════╝ ╚══════╝";
+echo -e "\e[0m"
+echo -e "       $(cat /var/git/wmus/quotes.txt | ruby -e 'puts STDIN.readlines.shuffle' | tail -n 1)"
+}
+
+isitrunning() {
+   if pgrep -x cmus > /dev/null; then
+        echo -e "\e[1;35m"
+     else
+
+       echo  -e "          Eh, are you kidding?\n  \
+     Try to start cmus first...\n"
+        exit
+  fi
+}
+
+if [ -z "$1" ]; then
+banner
+cat <<EOF
+
+# Commands                    # Description
+-----------------------------------------------
+# wmus play                   # Play Song
+# wmus pause                  # Pause Song
+# wmus stop                   # Stop Cmus
+# wmus next                   # Play Next
+# wmus prev                   # Play Previous
+# wmus repeat                 # Enable Repeat
+# wmus shuffle                # Shuffle Playlist
+# wmus playlist               # Print Playlist
+# wmus all                    # Print All Info
+# wmus vol                    # Set Volume
+# wmus release                # Print Releasename
+# wmus move                   # Copy path/album/track
+# wmus path                   # Print Path
+# wmus track                  # Print Track/Releasename
+# wmus status                 # Print Info About Current Song
+# wmus add                    # Add Another Folder To Playlist
+# wmus clear                  # Clear Current Playlist
+
+
+EOF
+fi
+if [ "$1" = "play" ]; then
+  banner
+isitrunning
+echo -e "                 \e[0;3m \e[1;35mPlaying:\e[0m\e[0m"
+cmus-remote -p
+echo -e "\n$(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D')..\n"
+fi
+
+if [ "$1" = "pause" ]; then
+  banner
+isitrunning
+echo -e "                 \e[0;3m \e[1;35mPaused:\e[0m\e[0m\n"
+cmus-remote -u
+echo -e "$(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D')...\n"
+fi
+
+if [ "$1" = "stop" ]; then
+  banner
+isitrunning
+
+  echo -e "                 \e[0;3m \e[1;35mStopped Cmus:\e[0m\e[0m\n"
+cmus-remote -s
+fi
+
+if [ "$1" = "next" ]; then
+  banner
+isitrunning
+echo -e "\n       Playing next track from playlist \n       $(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D')...\n\e[0m"
+cmus-remote --next
+fi
+
+if [ "$1" = "prev" ]; then
+  banner
+isitrunning
+
+  echo -e "                 \e[0;3m \e[1;35mPlaying Previous Track From Playlist:\e[0m\e[0m\n"
+echo -e "\nPlaying previous track: $(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D')...\n"
+cmus-remote -r
+fi
+
+if [ "$1" = "repeat" ]; then
+  banner
+isitrunning
+
+echo -e "\n           \e[0;3m \e[1;35mTurned Repeat: \e[1;32mON\e[0m\e[0m\n"
+cmus-remote -R
+fi
+
+if [ "$1" = "shuffle" ]; then
+  banner
+echo -e "\n           \e[0;3m \e[1;35mTurned Shuffle: \e[1;32mON\e[0m\e[0m\n"
+cmus-remote -S
+echo ""
+
+fi
+
+if [ "$1" = "playlist" ]; then
+banner
+isitrunning
+echo -e "       Please wait, printing playlist..\n"
+echo -e "--------------------------------------------------\n"
+cmus-remote -P
+
+echo ""
+
+fi
+
+if [ "$1" = "all" ]; then
+banner
+isitrunning
+echo -e "\n   Printing \e[0;4mall\e[0m info about current track...\n"
+cmus-remote -Q
+echo -e "\n\e[0;3mFor a more human friendly interface try 'wmus status'"
+echo ""
+fi
+
+if [ "$1" = "vol" ]; then
+banner
+isitrunning
+old_volume="$(wmus all | grep vol | awk '{print $3}' | tail -n 1)%"
+cmus-remote -v $2%
+current_volume="$2%"
+echo -e "\n      Changed volume from \e[0;1m$old_volume\e[0m to \e[0;1m$current_volume\e[0m"
+echo -e ""
+echo ""
+fi
+
+if [ "$1" = "release" ]; then
+banner
+isitrunning
+echo -e "           \e[1;35m Current Track Is From\n\e[0m"
+echo -e "$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f8)\n"
+fi
+
+if [ "$1" = "move" ]; then
+  banner
+isitrunning
+echo -e "      \e[1;3m \e[1;35mwuseman's Track Copier For Cmus\e[0m"
+mp3_path="/home/wuseman/music"
+track="$(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D') "
+album="$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f8)"
+path="$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f1,2,3,4,5,6,7)"
+echo -e "\n\e[0;1mCurrent Path: \e[1;33m$path\e[0m"
+echo -e "\e[0;1mCurrent Album: \e[1;32m$album\e[0m"
+echo -e "\e[0;1mCurrent Track: \e[1;36m$track\e[0m\n"
+
+PS3="Copy path, album or track into $mp3_path: "
+options=("path" "album" "track")
+  select opt in ${options[@]}
+  do
+    case $opt in
+       "path")
+               echo -e "\n[-] Please wait, copying $folder\e[0m into \e[1;31m$mp3_path\e[0m"
+               cp -r $path $mp3_path
+              echo -e "[+] \e[1;32mSuccessfully\e[0m copied \e[1;33m$path\e[0m into \e[1;31$mp3_path\e[0m\n" ;;
+       "album")
+               echo -e "\n[-] Please wait, copying \e[1;32m$album\e[0m into \e[1;31$mp3_path\e[0m"
+               cp -r $path/$album $mp3_path
+               echo -e "[+] \e[1;31mSuccessfully\e[0m copied \e[1;32m$album\e[0m into \e[1;31$mp3_path\e[0m\n" ;;
+       "track")
+               echo -e "\n[-] Please wait copying \e[1;36m$track\e[0m into \e[1;31m$mp3_path\e[0m"
+               cp  $path/$album/$track $mp3_path
+               echo -e "[+] \e[1;32mSuccessfully\e[0m copied \e[1;36m$track\e[0m into \e[1;31m$mp3_path\n\e[0m" ;;
+   esac
+  done
+fi
+
+if [ "$1" = "path" ]; then
+  banner
+isitrunning
+echo -e "           \e[1;35mCurrent Track Is Stored In: \e[0m\n"
+    echo -e "$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f1,2,3,4,5,6,7,8)\n"
+fi
+
+if [ "$1" = "track" ]; then
+  banner
+isitrunning
+
+    echo -e "\nCurrent track: $(wmus all | grep file | awk '{print $2}' | cut -d'/' -f9)"
+    echo -e "From release: $(wmus all | grep file | awk '{print $2}' | cut -d'/' -f8)\n"
+fi
+
+
+
+
+if [ "$1" = "status" ]; then
+banner
+isitrunning
+track="$(wmus all | grep file | awk '{print $2}' | sed 's|/|&\n|;//D') "
+album="$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f8)"
+path="$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f1,2,3,4,5,6,7)"
+genre="$(wmus all | grep genre | awk '{print $3}')"
+year="$(wmus all | grep date | awk '{print $3}')"
+#duration='$(wmus all grep duration | echo "scale=2; 3487/60" | bc -l)'
+release="$(wmus all | grep file | awk '{print $2}' | cut -d'/' -f9)"
+artist="$(wmus all | grep artist | awk '{print $3,$4,$5,$6,$7,$8}' | head -n 1)"
+volume="$(wmus all | grep vol_left | awk '{print $3}')"
+shuffle="$(wmus all | grep shuffle | awk '{print $3}' | sed 's/true/ON/g' | sed 's/false/OFF/g')"
+echo -e "                   \e[0;3m \e[1;35mOnair:\e[0m\e[0m\n"
+echo -e "\e[1;35mArtist.......\e[0m: \e[0;1m$artist\e[0m"
+echo -e "\e[1;35mGenre........\e[0m: \e[0;1m$genre\e[0m"
+echo -e "\e[1;35mYear.........\e[0m: \e[0;1m$year\e[0m"
+echo -e "\e[1;35mTrack........\e[0m: \e[0;1m$track\e[0m"
+echo -e "\e[1;35mDuration.....\e[0m: \e[0;1m05.39 min\e[0m"
+echo -e "\e[1;35mAlbum........\e[0m: \e[0;1m$album\e[0m"
+echo -e "\e[1;35mRelease......\e[0m: \e[0;1m$release\e[0m"
+echo -e "\e[1;35mVolume.......\e[0m: \e[0;1m$volume\e[0m%"
+echo -e "\e[1;35mShuffle......\e[0m: \e[0;1m$shuffle\n"
+
+fi
+
+if [ "$1" = "add" ]; then
+banner
+isitrunning
+ read -p "       Path To Add To Current Playlist:  " pathtoadd
+  if [ -n "$pathtoadd" ]; then
+echo -e "\n       Added $pathtoadd, depends on your foldersize \
+                  \n       this will take some time...\e[0m\n"
+       cmus-remote -C "add $pathtoadd"
+else
+    echo -e "\nEh? Try again with a real folder that exist...\n"
+  fi
+fi
+
+if [ "$1" = "clear" ]; then
+banner
+isitrunning
+         cmus-remote -C "clear"
+         cmus-remote -C "clear"
+            echo -e "          Playlist has been cleared...\n\e[0m"
+fi
