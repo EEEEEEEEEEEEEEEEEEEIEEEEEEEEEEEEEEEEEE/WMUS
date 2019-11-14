@@ -1,5 +1,3 @@
-![Screenshot](/files/wtv.gif)
-
 # WTV
 
 #### README
